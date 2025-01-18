@@ -1,0 +1,9 @@
+-- Add migration script here
+CREATE TABLE IF NOT EXISTS organizations (
+	id SERIAL NOT NULL PRIMARY KEY,
+	name  VARCHAR(255) NOT NULL, 
+	root_user INTEGER NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (root_user) REFERENCES users(id)
+);

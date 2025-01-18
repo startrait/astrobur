@@ -1,0 +1,20 @@
+version: '2.23'
+services:
+  my-pg:
+    image: postgres:latest
+    container_name: astrobur-pg
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=siri
+      - POSTGRES_USER=siri
+      - POSTGRES_DB=astrobur
+    volumes:
+      - "astrobur-storage:/var/lib/postgresql/data"
+  my-adminer:
+    image: adminer:latest
+    container_name: astrobur-adminer
+    ports:
+      - 8091:8080
+volumes:
+  astrobur-storage:
