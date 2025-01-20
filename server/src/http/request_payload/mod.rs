@@ -1,4 +1,3 @@
-use crate::app_state::APP_SECRET;
 use crate::database::models::{Url, User};
 use crate::http::error::BurError;
 use chrono::NaiveDateTime;

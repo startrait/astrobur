@@ -36,7 +36,8 @@ pub async fn create_user(user: User, state: Arc<AppState>) -> Result<(), BurErro
 pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError> {
     check_if_exists(state.db.as_ref(), "urls", "code", &url.code).await?;
 
-    let _ = sqlx::query(
+    let mut tx = state.db.begin().await?;
+    let url_id: i32 = sqlx::query(
         "INSERT INTO urls(
             code,
             destination,
@@ -45,7 +46,7 @@ pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError>
             active,
             expiry_date,
             track_qr_scans
-        ) VALUES($1,$2,$3,$4,$5,$6,$7) ",
+        ) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING ID",
     )
     .bind(&url.code)
     .bind(&url.destination)
@@ -54,8 +55,16 @@ pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError>
     .bind(&url.active)
     .bind(&url.expiry_date)
     .bind(&url.track_qr_scans)
-    .execute(state.db.as_ref())
-    .await?;
+    .fetch_one(&mut *tx)
+    .await?
+    .get("id");
+
+    let _ = sqlx::query("INSERT INTO url_trackings(url_id,click_count) VALUES ($1, 0)")
+        .bind(&url_id)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
 
     Ok(url)
 }
