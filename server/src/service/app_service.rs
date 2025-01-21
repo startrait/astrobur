@@ -59,10 +59,12 @@ pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError>
     .await?
     .get("id");
 
-    let _ = sqlx::query("INSERT INTO url_trackings(url_id,click_count) VALUES ($1, 0)")
-        .bind(&url_id)
-        .execute(&mut *tx)
-        .await?;
+    let _ = sqlx::query(
+        "INSERT INTO url_trackings(url_id,total_click_count,qr_scan_count) VALUES ($1, 0,0)",
+    )
+    .bind(&url_id)
+    .execute(&mut *tx)
+    .await?;
 
     tx.commit().await?;
 
@@ -86,4 +88,41 @@ async fn check_if_exists(
         })),
         None => Ok(()),
     }
+}
+
+// pub async fn get_destination(state: State<AppState>,code: String) -> Result<String, BurError> {
+//
+//     let url = get_url_details_from_code(state.db.as_ref(), code).await?;
+//     url.destination
+// }
+
+pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, BurError> {
+    let row = sqlx::query(
+        "
+        SELECT 
+                destination,
+                query_parameters,
+                organization_id,
+                active,
+                expiry_date,
+                track_qr_scans
+        FROM urls
+        WHERE code = $1
+    ",
+    )
+    .bind(&code)
+    .fetch_one(db)
+    .await?;
+
+    let url = Url {
+        code: code.to_owned(),
+        track_qr_scans: row.get("track_qr_scans"),
+        query_parameters: row.get("query_parameters"),
+        organization_id: row.get("organization_id"),
+        active: row.get("active"),
+        expiry_date: row.get("expiry_date"),
+        destination: row.get("destination"),
+    };
+
+    Ok(url)
 }

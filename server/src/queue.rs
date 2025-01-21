@@ -22,8 +22,8 @@ pub struct EngagementDetailJob {
 
 #[derive(Serialize, Deserialize)]
 pub struct ClickCountJob {
+    pub qr_scanned: bool,
     pub id: i32,
-    pub code: String,
 }
 
 // does need a cleaner and simpler interface to be able to swiftly switch between
@@ -39,18 +39,21 @@ pub async fn init_apalis(pg_pool: Arc<PgPool>) -> Result<ConnectionManager, BurE
 }
 
 pub async fn consume_click_count(cc: ClickCountJob) {
-
     if let Some(db) = PG_CONNECTION.get() {
-
-        let _ = sqlx::query("
+        let _ = sqlx::query(
+            "
         UPDATE url_trackings
-        SET click_count = url_trackings.click_count + 1 
-        WHERE url_id = $1
-            ")
-            .bind(&cc.id)
-            .execute(db.as_ref())
-            .await
-            .unwrap();
+        SET total_click_count = url_trackings.total_click_count + 1,
+            qr_scan_count = qr_scan_count + $1
+
+        WHERE url_id = $2
+            ",
+        )
+        .bind(*&cc.qr_scanned as i32)
+        .bind(&cc.id)
+        .execute(db.as_ref())
+        .await
+        .unwrap();
 
         println!("incremented in db successfully");
     }
@@ -73,9 +76,7 @@ pub async fn click_count_worker(connection: ConnectionManager) -> RedisStorage<C
 }
 
 async fn consume_engagement(detail: EngagementDetailJob) {
-
     if let Some(db) = PG_CONNECTION.get() {
-
         let result = sqlx::query(
             "
         SELECT destination,organization_id 
@@ -96,7 +97,6 @@ async fn consume_engagement(detail: EngagementDetailJob) {
             }
             None => println!("None data"),
         };
-
     }
 
     println!("IM BEING CONSUMEDDDD AAAAAHHHHHHH");

@@ -33,7 +33,7 @@ impl AppState {
             db: pg_pool,
             job: Jobs {
                 engagement_job: engagement_storage,
-                click_count_job: click_count_storage
+                click_count_job: click_count_storage,
             },
         })
     }
