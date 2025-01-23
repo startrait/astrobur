@@ -5,6 +5,10 @@ use crate::service::AuthenticatedUser;
 use sqlx::postgres::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
+use qrcode::render::svg;
+use qrcode::QrCode;
+use tracing::{error,info,debug,event};
+use tracing::Level;
 
 pub async fn create_user(user: User, state: Arc<AppState>) -> Result<(), BurError> {
     let db: Arc<PgPool> = state.db.clone();
@@ -29,6 +33,7 @@ pub async fn create_user(user: User, state: Arc<AppState>) -> Result<(), BurErro
         .await?;
 
     tx.commit().await?;
+    event!(Level::INFO, message = "User created.", user = &user.email );
 
     Ok(())
 }
@@ -90,12 +95,6 @@ async fn check_if_exists(
     }
 }
 
-// pub async fn get_destination(state: State<AppState>,code: String) -> Result<String, BurError> {
-//
-//     let url = get_url_details_from_code(state.db.as_ref(), code).await?;
-//     url.destination
-// }
-
 pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, BurError> {
     let row = sqlx::query(
         "
@@ -125,4 +124,10 @@ pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, B
     };
 
     Ok(url)
+}
+
+pub fn get_qr_svg(url: &str) -> Result<String, BurError> {
+    let code = QrCode::new(url).unwrap();
+    let svg_xml = code.render::<svg::Color>().build();
+    Ok(svg_xml)
 }

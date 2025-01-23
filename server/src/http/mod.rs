@@ -4,6 +4,7 @@ pub mod error;
 pub mod generator;
 pub mod http_server;
 pub mod request_payload;
+pub mod response;
 
 use serde::Serialize;
 
