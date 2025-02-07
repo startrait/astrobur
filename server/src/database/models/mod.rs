@@ -1,7 +1,8 @@
-use chrono::NaiveDateTime;
 use crate::http::response;
+use chrono::NaiveDateTime;
 
 pub struct User {
+    pub id: i32,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -17,8 +18,7 @@ pub struct Url {
     pub destination: String,
 }
 
-impl Into<response::UrlInfo> for Url  {
-
+impl Into<response::UrlInfo> for Url {
     fn into(self) -> response::UrlInfo {
         response::UrlInfo {
             code: self.code,
@@ -26,10 +26,7 @@ impl Into<response::UrlInfo> for Url  {
             track_qr_scans: self.track_qr_scans,
             query_parameters: self.query_parameters,
             qr_svg: None,
-            active: self.active
+            active: self.active,
         }
-
     }
-
 }
-

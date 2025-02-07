@@ -3,6 +3,7 @@ pub mod authenticator;
 pub mod error;
 pub mod generator;
 pub mod http_server;
+pub mod middleware;
 pub mod request_payload;
 pub mod response;
 

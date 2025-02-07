@@ -1,4 +1,5 @@
 pub mod app_service;
+pub mod jwt_service;
 use chrono::NaiveDateTime;
 
 pub struct AuthenticatedUser {

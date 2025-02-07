@@ -2,15 +2,15 @@ use crate::app_state::AppState;
 use crate::database::models::{Url, User};
 use crate::http::error::{BurError, ErrorResponse};
 use crate::service::AuthenticatedUser;
+use qrcode::render::svg;
+use qrcode::QrCode;
 use sqlx::postgres::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
-use qrcode::render::svg;
-use qrcode::QrCode;
-use tracing::{error,info,debug,event};
 use tracing::Level;
+use tracing::{debug, error, event, info};
 
-pub async fn create_user(user: User, state: Arc<AppState>) -> Result<(), BurError> {
+pub async fn create_user(user: &User, state: Arc<AppState>) -> Result<i32, BurError> {
     let db: Arc<PgPool> = state.db.clone();
 
     check_if_exists(db.as_ref(), "users", "email", &user.email).await?;
@@ -33,9 +33,9 @@ pub async fn create_user(user: User, state: Arc<AppState>) -> Result<(), BurErro
         .await?;
 
     tx.commit().await?;
-    event!(Level::INFO, message = "User created.", user = &user.email );
+    event!(Level::INFO, message = "User created.", user = &user.email);
 
-    Ok(())
+    Ok(user_id)
 }
 
 pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError> {

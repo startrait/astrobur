@@ -14,6 +14,7 @@ pub struct UserCreationRequest {
 impl Into<User> for UserCreationRequest {
     fn into(self) -> User {
         User {
+            id: 0,
             name: self.name,
             email: self.email,
             password: self.password,
@@ -56,4 +57,9 @@ impl TryInto<Url> for UrlGenerationRequest {
             destination: self.destination,
         })
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TokenValidationRequest {
+    pub token: String,
 }

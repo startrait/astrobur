@@ -1,8 +1,8 @@
-use crate::database::models::{Url};
-use serde::Serialize;
-use axum::response::{Response,IntoResponse};
-use axum::http::StatusCode;
+use crate::database::models::Url;
 use axum::extract::Json;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct UrlInfo {
@@ -11,16 +11,11 @@ pub struct UrlInfo {
     pub track_qr_scans: bool,
     pub query_parameters: serde_json::Value,
     pub active: bool,
-    pub qr_svg: Option<String>
+    pub qr_svg: Option<String>,
 }
 
 impl IntoResponse for UrlInfo {
-
     fn into_response(self) -> Response {
-        (StatusCode::OK,Json(&self)).into_response()
+        (StatusCode::OK, Json(&self)).into_response()
     }
-
 }
-
-
-

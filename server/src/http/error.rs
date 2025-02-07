@@ -23,6 +23,8 @@ pub enum BurError {
     ChronoError(#[from] chrono::ParseError),
     #[error("serde_json-error: {0}")]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("jsonwebtoken error: {0}")]
+    JsonWebTokenError(#[from] jsonwebtoken::errors::Error),
 }
 
 #[derive(Debug, Serialize)]
@@ -51,6 +53,10 @@ impl IntoResponse for BurError {
                 },
             ),
             BurError::CustomError(err) => (StatusCode::INTERNAL_SERVER_ERROR, err),
+            BurError::JsonWebTokenError(err) => (StatusCode::UNAUTHORIZED, ErrorResponse {
+                error_code: 401,
+                reason: format!("{}",err)
+            }),
 
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,

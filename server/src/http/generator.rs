@@ -1,8 +1,9 @@
 use crate::app_state::AppState;
 use crate::http::error::BurError;
 use crate::http::request_payload::UrlGenerationRequest;
+use crate::http::response::UrlInfo;
 use crate::queue::{ClickCountJob, EngagementDetailJob};
-use crate::service::app_service::{create_url, get_url_details_from_code,get_qr_svg};
+use crate::service::app_service::{create_url, get_qr_svg, get_url_details_from_code};
 use apalis::prelude::*;
 use axum::body::Body;
 use axum::extract::{Json, Path, Query, State};
@@ -12,7 +13,6 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use crate::http::response::{UrlInfo};
 use std::collections::HashMap;
 use tracing::info;
 
@@ -31,7 +31,6 @@ async fn url_handler(
     Path(path): Path<String>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Response, BurError> {
-
     let qr_scanned = params
         .get("qr_scanned")
         .map_or(false, |scanned| scanned == "true");
@@ -96,10 +95,9 @@ async fn url_generator(
 
 async fn url_info(
     State(state): State<Arc<AppState>>,
-    Path(path): Path<String>
-) -> Result<UrlInfo,BurError> {
-
-    let url = get_url_details_from_code(state.db.as_ref(),&path).await?;
+    Path(path): Path<String>,
+) -> Result<UrlInfo, BurError> {
+    let url = get_url_details_from_code(state.db.as_ref(), &path).await?;
     let mut url_info: UrlInfo = url.into();
 
     let svg_xml = get_qr_svg(&path)?;
