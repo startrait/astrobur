@@ -1,13 +1,12 @@
-use crate::database::models::User;
-use crate::http::error::BurError;
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use crate::database::models::user::User;
+use crate::error::BurError;
+use chrono::Local;
 use jsonwebtoken::errors::Error;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 use std::ops::Add;
-use std::time::{Duration};
-use chrono::{DateTime, Local};
-use tracing::{event};
+use std::time::Duration;
+use tracing::event;
 use tracing::Level;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -29,7 +28,7 @@ pub fn validate_jwt(token: &str) -> Result<(), Error> {
 }
 
 fn get_validations() -> Validation {
-    let mut validation = Validation::default();
+    let validation = Validation::default();
     validation
 }
 
@@ -39,15 +38,19 @@ pub fn generate_jwt(user: &User, exp: Option<usize>) -> Result<String, BurError>
     let claims = Claims {
         aud: None,
         exp: now.timestamp() as usize,
-        sub: format!("{}", user.id),
+        sub: format!("{:?}", user.id),
     };
-
 
     let token = encode(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret("hehe".as_ref()),
     )?;
-    event!(Level::INFO, user = user.email, exp = &claims.exp, token = &token);
+    event!(
+        Level::INFO,
+        user = user.email,
+        exp = &claims.exp,
+        token = &token
+    );
     Ok(token)
 }

@@ -1,42 +1,12 @@
-use crate::app_state::AppState;
-use crate::database::models::{Url, User};
-use crate::http::error::{BurError, ErrorResponse};
-use crate::service::AuthenticatedUser;
+use crate::app::AppState;
+use crate::database::models::url::Url;
+use crate::error::BurError;
+use crate::service::check_if_exists;
 use qrcode::render::svg;
 use qrcode::QrCode;
 use sqlx::postgres::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
-use tracing::Level;
-use tracing::{debug, error, event, info};
-
-pub async fn create_user(user: &User, state: Arc<AppState>) -> Result<i32, BurError> {
-    let db: Arc<PgPool> = state.db.clone();
-
-    check_if_exists(db.as_ref(), "users", "email", &user.email).await?;
-
-    let mut tx = db.as_ref().begin().await?;
-
-    let user_id: i32 =
-        sqlx::query("INSERT INTO users(name,email,password) VALUES($1,$2,$3) RETURNING ID")
-            .bind(&user.name)
-            .bind(&user.email)
-            .bind(&user.password)
-            .fetch_one(&mut *tx)
-            .await?
-            .get("id");
-
-    let _ = sqlx::query("INSERT INTO organizations(name,root_user) VALUES($1,$2) RETURNING ID")
-        .bind(&user.name)
-        .bind(&user_id)
-        .fetch_one(&mut *tx)
-        .await?;
-
-    tx.commit().await?;
-    event!(Level::INFO, message = "User created.", user = &user.email);
-
-    Ok(user_id)
-}
 
 pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError> {
     check_if_exists(state.db.as_ref(), "urls", "code", &url.code).await?;
@@ -74,25 +44,6 @@ pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError>
     tx.commit().await?;
 
     Ok(url)
-}
-
-async fn check_if_exists(
-    db: &PgPool,
-    table: &str,
-    column: &str,
-    value: &String,
-) -> Result<(), BurError> {
-    let query = format!("SELECT 1 FROM {} WHERE {} = $1", table, column);
-
-    let result = sqlx::query(&query).bind(&value).fetch_optional(db).await?;
-
-    match result {
-        Some(_) => Err(BurError::CustomError(ErrorResponse {
-            error_code: 500,
-            reason: format!("{} already exists", column),
-        })),
-        None => Ok(()),
-    }
 }
 
 pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, BurError> {

@@ -1,9 +1,10 @@
-use crate::app_state::AppState;
-use crate::http::error::BurError;
-use crate::http::request_payload::UrlGenerationRequest;
-use crate::http::response::UrlInfo;
-use crate::queue::{ClickCountJob, EngagementDetailJob};
-use crate::service::app_service::{create_url, get_qr_svg, get_url_details_from_code};
+use crate::app::AppState;
+use crate::error::BurError;
+use crate::http::api::request::url::UrlGenerationRequest;
+use crate::http::api::response::url::UrlInfo;
+
+use crate::job::url::{ClickCountJob, EngagementDetailJob};
+use crate::service::url::{create_url, get_qr_svg, get_url_details_from_code};
 use apalis::prelude::*;
 use axum::body::Body;
 use axum::extract::{Json, Path, Query, State};
@@ -58,7 +59,7 @@ async fn url_handler(
         .body(Body::empty())
         .unwrap();
 
-    let mut tracker = state.job.engagement_job.clone();
+    let mut tracker = state.job.engagement_detail.clone();
     match tracker
         .push(EngagementDetailJob {
             code: path.clone(),
@@ -73,7 +74,7 @@ async fn url_handler(
         Err(e) => println!("Failed to push engagement job {}", e),
     };
 
-    let mut counter = state.job.click_count_job.clone();
+    let mut counter = state.job.click_count.clone();
     match counter.push(ClickCountJob { id: 1, qr_scanned }).await {
         Ok(_) => {}
         Err(e) => println!("Failed to push click count job {}", e),

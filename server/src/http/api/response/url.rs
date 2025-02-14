@@ -1,4 +1,3 @@
-use crate::database::models::Url;
 use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};

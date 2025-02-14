@@ -1,26 +1,8 @@
-use crate::database::models::{Url, User};
-use crate::http::error::BurError;
+use crate::database::models::url::Url;
+use crate::error::BurError;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct UserCreationRequest {
-    pub name: String,
-    pub email: String,
-    pub password: String,
-}
-
-impl Into<User> for UserCreationRequest {
-    fn into(self) -> User {
-        User {
-            id: 0,
-            name: self.name,
-            email: self.email,
-            password: self.password,
-        }
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct UrlGenerationRequest {
@@ -57,9 +39,4 @@ impl TryInto<Url> for UrlGenerationRequest {
             destination: self.destination,
         })
     }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct TokenValidationRequest {
-    pub token: String,
 }

@@ -1,4 +1,4 @@
-use server::http::http_server;
+use server::http::start as start_http_server;
 // use tracing_subscriber::fmt;
 #[tokio::main]
 async fn main() {
@@ -8,5 +8,5 @@ async fn main() {
         .compact()
         .init();
 
-    http_server::start().await.unwrap();
+    start_http_server().await.unwrap();
 }
