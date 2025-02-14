@@ -26,12 +26,24 @@ impl AppState {
 }
 
 async fn connect_postgres_db() -> PgPool {
+    let host = std::env::var("DB_HOST").expect("Expected DB_HOST environment variable.");
+    let port = std::env::var("DB_PORT")
+        .expect("Expected DB_PORT environment variable.")
+        .parse::<u16>()
+        .expect("DB_PORT must be an 16 bit unsigned integer");
+    let username =
+        std::env::var("DB_USERNAME").expect("Expected DB_USERNAME environment variable.");
+    let password =
+        std::env::var("DB_PASSWORD").expect("Expected DB_PASSWORD environment variable.");
+    let database =
+        std::env::var("DB_DATABASE").expect("Expected DB_DATABASE environment variable.");
+
     let opts = PgConnectOptions::new()
-        .host("localhost")
-        .port(5432)
-        .username("siri")
-        .password("siri")
-        .database("astrobur")
+        .host(&host)
+        .port(port)
+        .username(&username)
+        .password(&password)
+        .database(&database)
         .ssl_mode(PgSslMode::Disable);
     // .connect()
     // .await

@@ -11,7 +11,13 @@ pub async fn start() -> Result<(), BurError> {
     let app_state = Arc::new(AppState::new().await.unwrap());
     let router = Router::new().merge(api::router(app_state));
 
-    let listener = TcpListener::bind("0.0.0.0:7777").await.unwrap();
+    let host = std::env::var("HOST").expect("Expected environment variable HOST");
+    let port = std::env::var("PORT").expect("Expected environment variable PORT");
+
+    let listener = TcpListener::bind(format!("{}:{}", host, port))
+        .await
+        .unwrap();
+
     axum::serve(listener, router).await.unwrap();
     Ok(())
 }

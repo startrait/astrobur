@@ -96,7 +96,7 @@ async fn url_generator(
 async fn url_info(
     State(state): State<Arc<AppState>>,
     Path(path): Path<String>,
-    Query(query): Query<HashMap<String,String>>
+    Query(query): Query<HashMap<String, String>>,
 ) -> Result<UrlInfo, BurError> {
     let url = get_url_details_from_code(state.db.as_ref(), &path, true).await?;
     let mut url_info: UrlInfo = url.into();

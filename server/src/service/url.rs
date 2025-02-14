@@ -96,7 +96,7 @@ pub async fn get_url_details_from_code(
         WHERE url_id = $1
     ",
         )
-        .bind(&row.get::<i32,_>("id"))
+        .bind(&row.get::<i32, _>("id"))
         .fetch_one(db)
         .await?;
 
