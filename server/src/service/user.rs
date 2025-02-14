@@ -35,3 +35,18 @@ pub async fn create_user(user: &User, state: Arc<AppState>) -> Result<i32, BurEr
 
     Ok(user_id)
 }
+
+pub async fn get_user(state: Arc<AppState>, id: i32) -> Result<User, BurError> {
+    let row = sqlx::query("SELECT id, name, email, password FROM users WHERE id = $1")
+        .bind(&id)
+        .fetch_one(state.db.as_ref())
+        .await
+        .unwrap();
+
+    Ok(User {
+        id: Some(row.get("id")),
+        name: row.get("name"),
+        email: row.get("email"),
+        password: row.get("password"),
+    })
+}

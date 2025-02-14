@@ -37,6 +37,8 @@ pub enum BurError {
     AxumError(#[from] axum::Error),
     #[error("Axum Http Error: {0}")]
     AxumHttpError(#[from] axum::http::Error),
+    #[error("Invalid credential")]
+    InvalidCredential,
 }
 
 #[derive(Debug, Serialize, Clone)]

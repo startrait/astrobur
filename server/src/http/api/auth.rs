@@ -1,10 +1,9 @@
 use crate::app::AppState;
-use crate::database::models::user::User;
 use crate::error::BurError;
-use crate::http::api::request::auth::TokenValidationRequest;
-use crate::http::api::request::user::UserCreationRequest;
-use crate::service::jwt_service::{generate_jwt, validate_jwt};
-use crate::service::user::create_user;
+use crate::http::api::request::auth::{TokenValidationRequest, UserLoginRequest};
+use crate::service::check_if_exists;
+use crate::service::jwt::{generate_jwt, validate_jwt};
+use crate::service::{auth, user};
 use axum::extract::{Json, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -13,45 +12,31 @@ use axum::{
     Router,
 };
 use bcrypt::{hash, DEFAULT_COST};
-use serde_json::json;
 use std::sync::Arc;
 
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
-        .route("/authetication", get(get_authentication))
-        .route("/create-user", post(http_create_user))
+        .route("/auth/user/login", post(user_login))
         .route("/validate-token", post(validate_token))
         .with_state(state)
 }
 
-async fn validate_token(Json(payload): Json<TokenValidationRequest>) -> Result<Response, BurError> {
-    let _validation = validate_jwt(&payload.token)?;
+async fn validate_token(Json(body): Json<TokenValidationRequest>) -> Result<Response, BurError> {
+    let _validation = validate_jwt(&body.token)?;
 
     Ok((StatusCode::OK, "valid token").into_response())
 }
 
-async fn get_authentication() -> Response {
-    (StatusCode::OK, "/authetication").into_response()
-}
-
-async fn http_create_user(
+async fn user_login(
     State(state): State<Arc<AppState>>,
-    Json(payload): Json<UserCreationRequest>,
+    Json(mut body): Json<UserLoginRequest>,
 ) -> Result<Response, BurError> {
-    let mut user: User = payload.into();
-    user.password = hash(user.password, DEFAULT_COST)?;
+    let id = check_if_exists(state.db.as_ref(), "users", "email", &body.email).await?;
+    let user = user::get_user(state, id).await?;
+    if !bcrypt::verify(body.password, &user.password)? {
+        return Err(BurError::InvalidCredential);
+    }
+    let response = auth::authenticate_user(&user).await?;
 
-    let user_id = create_user(&user, state.clone()).await?;
-    user.id = Some(user_id);
-
-    let token = generate_jwt(&user, None)?;
-
-    Ok((
-        StatusCode::OK,
-        Json(json!({
-            "message": "User created successfully",
-            "access_token": token
-        })),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(response)).into_response())
 }

@@ -32,12 +32,12 @@ fn get_validations() -> Validation {
     validation
 }
 
-pub fn generate_jwt(user: &User, _exp: Option<usize>) -> Result<String, BurError> {
+pub fn generate_jwt(user: &User, exp: Option<usize>) -> Result<String, BurError> {
     let now = Local::now().add(Duration::from_secs(86400));
 
     let claims = Claims {
         aud: None,
-        exp: now.timestamp() as usize,
+        exp: exp.unwrap_or(now.timestamp() as usize),
         sub: format!("{:?}", user.id),
     };
 

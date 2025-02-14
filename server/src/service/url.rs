@@ -1,6 +1,6 @@
 use crate::app::AppState;
-use crate::database::models::url::Url;
-use crate::error::BurError;
+use crate::database::models::url::{Url, UrlTracking};
+use crate::error::{BurError, ErrorResponse};
 use crate::service::check_if_exists;
 use qrcode::render::svg;
 use qrcode::QrCode;
@@ -9,7 +9,12 @@ use sqlx::Row;
 use std::sync::Arc;
 
 pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError> {
-    check_if_exists(state.db.as_ref(), "urls", "code", &url.code).await?;
+    if let Ok(_) = check_if_exists(state.db.as_ref(), "urls", "code", &url.code).await {
+        return Err(BurError::CustomError(ErrorResponse {
+            error_code: 409,
+            reason: format!("Already used"),
+        }));
+    }
 
     let mut tx = state.db.begin().await?;
     let url_id: i32 = sqlx::query(
@@ -46,10 +51,15 @@ pub async fn create_url(state: Arc<AppState>, url: Url) -> Result<Url, BurError>
     Ok(url)
 }
 
-pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, BurError> {
+pub async fn get_url_details_from_code(
+    db: &PgPool,
+    code: &str,
+    tracked_data: bool,
+) -> Result<Url, BurError> {
     let row = sqlx::query(
         "
         SELECT 
+                id,
                 destination,
                 query_parameters,
                 organization_id,
@@ -64,7 +74,7 @@ pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, B
     .fetch_one(db)
     .await?;
 
-    let url = Url {
+    let mut url = Url {
         code: code.to_owned(),
         track_qr_scans: row.get("track_qr_scans"),
         query_parameters: row.get("query_parameters"),
@@ -72,7 +82,30 @@ pub async fn get_url_details_from_code(db: &PgPool, code: &str) -> Result<Url, B
         active: row.get("active"),
         expiry_date: row.get("expiry_date"),
         destination: row.get("destination"),
+        tracked_data: None,
     };
+
+    if tracked_data {
+        let t_row = sqlx::query(
+            "
+        SELECT 
+                url_id,
+                total_click_count,
+                qr_scan_count
+        FROM url_trackings
+        WHERE url_id = $1
+    ",
+        )
+        .bind(&row.get::<i32,_>("id"))
+        .fetch_one(db)
+        .await?;
+
+        url.tracked_data = Some(UrlTracking {
+            url_id: row.get::<i32, _>("id"),
+            total_click_count: t_row.get("total_click_count"),
+            qr_scan_count: t_row.get("qr_scan_count"),
+        });
+    }
 
     Ok(url)
 }

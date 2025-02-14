@@ -1,6 +1,7 @@
 use crate::error::BurError;
 use once_cell::sync::OnceCell;
 use sqlx::postgres::{PgConnectOptions, PgPool, PgSslMode};
+use sqlx::ConnectOptions;
 use std::sync::Arc;
 
 use crate::job::Job;
@@ -36,7 +37,7 @@ async fn connect_postgres_db() -> PgPool {
     // .await
     // .unwrap();
 
-    // opts =  opts.log_statements()
+    //opts =  opts.log_statements();
     let connection = PgPool::connect_with(opts).await.unwrap();
     connection
 }

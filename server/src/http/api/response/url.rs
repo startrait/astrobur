@@ -1,3 +1,4 @@
+use crate::database::models::url::UrlTracking;
 use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -11,6 +12,7 @@ pub struct UrlInfo {
     pub query_parameters: serde_json::Value,
     pub active: bool,
     pub qr_svg: Option<String>,
+    pub tracked_data: Option<UrlTracking>,
 }
 
 impl IntoResponse for UrlInfo {

@@ -40,6 +40,13 @@ impl IntoResponse for BurError {
                     reason: "requested entity not found".to_string(),
                 },
             ),
+            BurError::InvalidCredential => (
+                StatusCode::BAD_REQUEST,
+                ErrorResponse {
+                    error_code: 401,
+                    reason: self.to_string(),
+                },
+            ),
 
             _ => (
                 StatusCode::INTERNAL_SERVER_ERROR,

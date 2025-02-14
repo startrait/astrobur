@@ -37,6 +37,7 @@ impl TryInto<Url> for UrlGenerationRequest {
             expiry_date: expiry_date,
             code: self.code,
             destination: self.destination,
+            tracked_data: None
         })
     }
 }
