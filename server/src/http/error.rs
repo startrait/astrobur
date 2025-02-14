@@ -33,7 +33,7 @@ impl IntoResponse for BurError {
                     reason: format!("{}", err),
                 },
             ),
-            BurError::ENTITY_NOT_FOUND => (
+            BurError::EntityNotFound => (
                 StatusCode::BAD_REQUEST,
                 ErrorResponse {
                     error_code: 400,

@@ -5,8 +5,8 @@ use crate::service::check_if_exists;
 use sqlx::postgres::PgPool;
 use sqlx::Row;
 use std::sync::Arc;
-use tracing::Level;
 use tracing::event;
+use tracing::Level;
 
 pub async fn create_user(user: &User, state: Arc<AppState>) -> Result<i32, BurError> {
     let db: Arc<PgPool> = state.db.clone();

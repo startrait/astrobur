@@ -22,9 +22,9 @@ pub enum BurError {
     #[error("jsonwebtoken error: {0}")]
     JsonWebTokenError(#[from] jsonwebtoken::errors::Error),
     #[error("no db connection recieved from crate::app::state::DB_CONNECTION")]
-    NO_DB_CONNECTION,
+    NoDbConnection,
     #[error("requested entity not found")]
-    ENTITY_NOT_FOUND,
+    EntityNotFound,
     #[error("int parse error")]
     ParseIntError(#[from] std::num::ParseIntError),
     #[error("Form body rejected: {0}")]

@@ -3,7 +3,6 @@ use crate::database::models::user::User;
 use crate::error::BurError;
 use crate::http::api::request::auth::TokenValidationRequest;
 use crate::http::api::request::user::UserCreationRequest;
-
 use crate::service::jwt_service::{generate_jwt, validate_jwt};
 use crate::service::user::create_user;
 use axum::extract::{Json, State};
@@ -25,9 +24,8 @@ pub fn router(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
-#[axum::debug_handler]
 async fn validate_token(Json(payload): Json<TokenValidationRequest>) -> Result<Response, BurError> {
-    let validation = validate_jwt(&payload.token)?;
+    let _validation = validate_jwt(&payload.token)?;
 
     Ok((StatusCode::OK, "valid token").into_response())
 }

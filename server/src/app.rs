@@ -16,7 +16,7 @@ pub struct AppState {
 impl AppState {
     pub async fn new() -> Result<Self, BurError> {
         let pg_pool = Arc::new(connect_postgres_db().await);
-        PG_CONNECTION.set(pg_pool.clone());
+        let _ = PG_CONNECTION.set(pg_pool.clone());
 
         let job = queue::queue_init().await?;
 

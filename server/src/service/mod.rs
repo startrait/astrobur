@@ -2,7 +2,6 @@ pub mod jwt_service;
 pub mod url;
 pub mod user;
 
-
 use crate::error::{BurError, ErrorResponse};
 use sqlx::postgres::PgPool;
 

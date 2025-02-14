@@ -18,7 +18,7 @@ struct Claims {
 
 pub fn validate_jwt(token: &str) -> Result<(), Error> {
     let validations = get_validations();
-    let jwt = decode::<Claims>(
+    let _jwt = decode::<Claims>(
         token,
         &DecodingKey::from_secret("hehe".as_ref()),
         &validations,
@@ -32,7 +32,7 @@ fn get_validations() -> Validation {
     validation
 }
 
-pub fn generate_jwt(user: &User, exp: Option<usize>) -> Result<String, BurError> {
+pub fn generate_jwt(user: &User, _exp: Option<usize>) -> Result<String, BurError> {
     let now = Local::now().add(Duration::from_secs(86400));
 
     let claims = Claims {
